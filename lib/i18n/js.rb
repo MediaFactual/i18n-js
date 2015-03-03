@@ -104,10 +104,15 @@ module I18n
       FileUtils.mkdir_p File.dirname(file)
 
       File.open(file, "w+") do |f|
+        f << ";(function(factory) {"
+        f << "  if (typeof define === 'function' && define.amd) { define(['i18n'], factory); }"
+        f << "  else { factory(this.I18n); }"
+        f << "}(function(I18n) {"
         f << %(I18n.translations || (I18n.translations = {});\n)
         Utils.strip_keys_with_nil_values(translations).each do |locale, translations_for_locale|
           f << %(I18n.translations["#{locale}"] = #{translations_for_locale.to_json};\n);
         end
+        f << "}));"
       end
     end
 
