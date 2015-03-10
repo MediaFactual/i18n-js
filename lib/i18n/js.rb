@@ -104,15 +104,29 @@ module I18n
       FileUtils.mkdir_p File.dirname(file)
 
       File.open(file, "w+") do |f|
-        f << ";(function(factory) {"
-        f << "  if (typeof define === 'function' && define.amd) { define(['i18n'], factory); }"
-        f << "  else { factory(this.I18n); }"
-        f << "}(function(I18n) {"
+        prefix = <<-EOS
+;(function(factory) {
+  if (typeof module !== 'undefined') {
+    // Node/CommonJS
+    factory(require('i18n'));
+
+  } else if (typeof define === 'function' && define.amd) {
+    // AMD
+    define(['i18n'], factory);
+
+  } else {
+    // Browser globals
+    factory(this.I18n);
+  }
+}(function(I18n) {
+  "use strict";
+        EOS
+        f << prefix
         f << %(I18n.translations || (I18n.translations = {});\n)
         Utils.strip_keys_with_nil_values(translations).each do |locale, translations_for_locale|
           f << %(I18n.translations["#{locale}"] = #{translations_for_locale.to_json};\n);
         end
-        f << "}));"
+        f << "return I18n; }));"
       end
     end
 
