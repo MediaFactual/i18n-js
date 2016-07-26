@@ -32,6 +32,7 @@ module I18n
                   end
 
         locales.map! { |locale| locale.to_sym }
+        locales.keep_if { |locale| ::I18n.available_locales.include?(locale) }
         ensure_valid_locales!(locales)
         locales
       end
